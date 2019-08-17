@@ -8,6 +8,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 
+import br.net.easify.apiwebservice.Model.DataFactory;
 import br.net.easify.apiwebservice.R;
 
 public class ProfileFragment extends Fragment {
@@ -23,6 +24,9 @@ public class ProfileFragment extends Fragment {
         btnLogout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+
+                DataFactory.sharedInstance().logout();
+
                 Intent i = new Intent(getContext(), LoginActivity.class);
                 startActivity(i);
                 getActivity().finish();

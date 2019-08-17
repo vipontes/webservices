@@ -1,9 +1,22 @@
 package br.net.easify.apiwebservice.Model;
 
+import android.app.Activity;
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
+
+import androidx.annotation.NonNull;
+
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
+import com.google.firebase.auth.FirebaseAuthUserCollisionException;
+import com.google.firebase.auth.FirebaseAuthWeakPasswordException;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.UserProfileChangeRequest;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -27,8 +40,11 @@ import java.net.URL;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executor;
 
 import br.net.easify.apiwebservice.interfaces.IChuckNorrisJokeDelegate;
+import br.net.easify.apiwebservice.interfaces.ILoginDelegate;
+import br.net.easify.apiwebservice.interfaces.INewAccountDelegate;
 import br.net.easify.apiwebservice.interfaces.IOrgaoDelegate;
 
 public class DataFactory {
@@ -36,6 +52,9 @@ public class DataFactory {
     private static DataFactory instance = null;
     private Context context;
     private List<Orgao> orgaos = new ArrayList<>();
+
+    private FirebaseAuth firebaseAuth;
+    private FirebaseUser currentUser;
 
     private DataFactory() {
     }
@@ -52,6 +71,7 @@ public class DataFactory {
     public void setContext(Context context) {
 
         this.context = context;
+        this.firebaseAuth = FirebaseAuth.getInstance();
     }
 
 
@@ -160,7 +180,9 @@ public class DataFactory {
         }
     }
 
-    public List<Orgao> getOrgaos() { return this.orgaos; }
+    public List<Orgao> getOrgaos() {
+        return this.orgaos;
+    }
 
     public void getOrgaos(IOrgaoDelegate delegate) {
         new OrgaoAsync(delegate).execute();
@@ -224,11 +246,11 @@ public class DataFactory {
 
             orgaos.clear();
 
-            SoapObject ObterOrgaosResult = (SoapObject)result.getProperty(0);
-            SoapObject orgaosObject = (SoapObject)ObterOrgaosResult.getProperty(0);
+            SoapObject ObterOrgaosResult = (SoapObject) result.getProperty(0);
+            SoapObject orgaosObject = (SoapObject) ObterOrgaosResult.getProperty(0);
             for (int i = 0; i < orgaosObject.getPropertyCount(); i++) {
 
-                SoapObject property = (SoapObject)orgaosObject.getProperty(i);
+                SoapObject property = (SoapObject) orgaosObject.getProperty(i);
 
                 String id = property.getAttribute(0).toString();
                 String idTipodeOrgao = property.getAttribute(1).toString();
@@ -241,5 +263,66 @@ public class DataFactory {
 
             delegate.onOrgao(true);
         }
+    }
+
+    public void login(final ILoginDelegate delegate, String email, String password) {
+        firebaseAuth.signInWithEmailAndPassword(email, password)
+                .addOnCompleteListener((Activity) context, new OnCompleteListener<AuthResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<AuthResult> task) {
+                        if (task.isSuccessful()) {
+                            currentUser = firebaseAuth.getCurrentUser();
+                            delegate.onLogin(true);
+                        } else {
+                            currentUser = null;
+                            delegate.onLogin(false);
+                        }
+                    }
+                });
+    }
+
+    public boolean isUserLoggedIn() {
+        this.currentUser = this.firebaseAuth.getCurrentUser();
+        return (this.currentUser != null);
+    }
+
+    public void logout() {
+        this.firebaseAuth.signOut();
+        this.currentUser = null;
+    }
+
+    public void createAccount(final INewAccountDelegate delegate, final String nome, final String email, final String senha) {
+        this.firebaseAuth.createUserWithEmailAndPassword(email, senha)
+                .addOnCompleteListener((Activity) context, new OnCompleteListener<AuthResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<AuthResult> task) {
+                        if (task.isSuccessful()) {
+                            FirebaseUser user = firebaseAuth.getCurrentUser();
+
+                            UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
+                                    .setDisplayName(nome).build();
+
+                            user.updateProfile(profileUpdates);
+
+                            delegate.onNewAccount(true, "");
+                        } else {
+                            String msg;
+
+                            try {
+                                throw task.getException();
+                            } catch(FirebaseAuthWeakPasswordException e) {
+                                msg = "A senha deve ter no mínimo 8 caracteres";
+                            } catch(FirebaseAuthInvalidCredentialsException e) {
+                                msg = "E-mail inválido";
+                            } catch(FirebaseAuthUserCollisionException e) {
+                                msg = "O e-mail informado já está em uso";
+                            } catch(Exception e) {
+                                msg = "Erro não identificado";
+                            }
+
+                            delegate.onNewAccount(false, msg);
+                        }
+                    }
+                });
     }
 }
