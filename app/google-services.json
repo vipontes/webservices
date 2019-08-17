@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "89932054743",
+    "firebase_url": "https://apiwebservice-7f81e.firebaseio.com",
+    "project_id": "apiwebservice-7f81e",
+    "storage_bucket": "apiwebservice-7f81e.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:89932054743:android:7c962fb854f487c3",
+        "android_client_info": {
+          "package_name": "br.net.easify.apiwebservice"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "89932054743-riijvamioj3u4hjetb347oqtancm3jaq.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC0ZlPJ2zLZVkh7GpVZiGDGUDC6_JCXerw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "89932054743-riijvamioj3u4hjetb347oqtancm3jaq.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
