@@ -6,12 +6,12 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <androidx.viewpager.widget.ViewPager
+    <br.net.easify.apiwebservice.Utils.CustomViewPager
         android:id="@+id/viewPager"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1">
-    </androidx.viewpager.widget.ViewPager>
+    </br.net.easify.apiwebservice.Utils.CustomViewPager>
 
     <com.google.android.material.tabs.TabLayout
         android:id="@+id/tabLayout"

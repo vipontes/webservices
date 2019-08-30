@@ -19,16 +19,13 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="true">
-
-        <activity android:name=".Controller.NewAccountActivity"
+        <activity android:name=".Controller.EditEmpresaActivity"></activity>
+        <activity
+            android:name=".Controller.NewAccountActivity"
             android:configChanges="screenLayout|orientation|screenSize"
             android:theme="@style/AppTheme.Login"
-            android:windowSoftInputMode="stateHidden|adjustPan">
-
-        </activity>
-
+            android:windowSoftInputMode="stateHidden|adjustPan"></activity>
         <activity android:name=".Controller.MainActivity" />
-
         <activity
             android:name=".Controller.LoginActivity"
             android:configChanges="screenLayout|orientation|screenSize"
@@ -36,6 +33,7 @@
             android:windowSoftInputMode="stateHidden|adjustPan">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>

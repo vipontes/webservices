@@ -2,20 +2,16 @@ package br.net.easify.apiwebservice.Controller;
 
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.viewpager.widget.ViewPager;
-
 import android.os.Bundle;
-
 import com.google.android.material.tabs.TabLayout;
-
-import br.net.easify.apiwebservice.Model.DataFactory;
 import br.net.easify.apiwebservice.R;
+import br.net.easify.apiwebservice.Utils.CustomViewPager;
 import br.net.easify.apiwebservice.View.TabAdapter;
 
 public class MainActivity extends AppCompatActivity {
     private TabAdapter adapter;
     private TabLayout tabLayout;
-    private ViewPager viewPager;
+    private CustomViewPager viewPager;
     private int[] tabIcons = {
             R.drawable.ic_laptop,
             R.drawable.ic_laptop_mac,
