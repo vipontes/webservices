@@ -19,12 +19,14 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="true">
-        <activity android:name=".Controller.EditEmpresaActivity"></activity>
+        <activity android:name=".Controller.EditContatoActivity"></activity>
+        <activity android:name=".Controller.ContatosActivity" />
+        <activity android:name=".Controller.EditEmpresaActivity" />
         <activity
             android:name=".Controller.NewAccountActivity"
             android:configChanges="screenLayout|orientation|screenSize"
             android:theme="@style/AppTheme.Login"
-            android:windowSoftInputMode="stateHidden|adjustPan"></activity>
+            android:windowSoftInputMode="stateHidden|adjustPan" />
         <activity android:name=".Controller.MainActivity" />
         <activity
             android:name=".Controller.LoginActivity"

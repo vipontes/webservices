@@ -4,6 +4,8 @@ import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import com.google.android.material.tabs.TabLayout;
+
+import br.net.easify.apiwebservice.Model.DataFactory;
 import br.net.easify.apiwebservice.R;
 import br.net.easify.apiwebservice.Utils.CustomViewPager;
 import br.net.easify.apiwebservice.View.TabAdapter;
@@ -24,6 +26,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        DataFactory.sharedInstance().setContext(this);
 
         ActionBar actionBar = getSupportActionBar();
         actionBar.hide();

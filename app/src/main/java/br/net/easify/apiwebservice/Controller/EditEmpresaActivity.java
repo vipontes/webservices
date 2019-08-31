@@ -47,8 +47,6 @@ public class EditEmpresaActivity extends AppCompatActivity implements IEditEmpre
     private TextInputEditText txtNome;
     private static int SELECT_PICTURE = 1;
 
-    private String selectedImagePath = "";
-
     private Empresa empresa;
     private int editPosition = -1;
 
@@ -191,6 +189,17 @@ public class EditEmpresaActivity extends AppCompatActivity implements IEditEmpre
                     DataFactory.sharedInstance().addEmpresa(EditEmpresaActivity.this, empresa);
                 }
                 return true;
+
+            case R.id.contacts:
+                if ( empresa != null ) {
+                    Intent intent = new Intent(this, ContatosActivity.class);
+                    intent.putExtra("empresa", empresa);
+                    startActivity(intent);
+                } else {
+                    Toast.makeText(this, "Grave a empresa antes de adicionar contatos", Toast.LENGTH_LONG).show();
+                }
+                return true;
+
             default:
                 return super.onOptionsItemSelected(item);
         }

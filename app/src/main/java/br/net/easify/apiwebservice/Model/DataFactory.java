@@ -11,6 +11,7 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 
+import com.google.android.gms.tasks.OnCanceledListener;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -57,23 +58,27 @@ import java.util.List;
 import java.util.Map;
 
 import br.net.easify.apiwebservice.interfaces.IChuckNorrisJokeDelegate;
+import br.net.easify.apiwebservice.interfaces.IContatosDelegate;
+import br.net.easify.apiwebservice.interfaces.IEditContatoDelegate;
 import br.net.easify.apiwebservice.interfaces.IEditEmpresaDelegate;
 import br.net.easify.apiwebservice.interfaces.IEmpresasDelegate;
 import br.net.easify.apiwebservice.interfaces.ILoginDelegate;
 import br.net.easify.apiwebservice.interfaces.INewAccountDelegate;
 import br.net.easify.apiwebservice.interfaces.IOrgaoDelegate;
+import br.net.easify.apiwebservice.interfaces.IRemoveContatoDelegate;
 import br.net.easify.apiwebservice.interfaces.IRemoveEmpresaDelegate;
 
 public class DataFactory {
 
     private final String USER_COLLECTION = "usuarios";
     private final String EMPRESAS_COLLECTION = "empresas";
+    private final String CONTATOS_COLLECTION = "contatos";
 
     private static DataFactory instance = null;
     private Context context;
     private List<Orgao> orgaos = new ArrayList<>();
     private List<Empresa> empresas = new ArrayList<>();
-
+    private List<Contato> contatos = new ArrayList<>();
 
     private FirebaseAuth firebaseAuth;
     private FirebaseUser currentUser;
@@ -81,6 +86,9 @@ public class DataFactory {
     private FirebaseStorage storage;
 
     private DataFactory() {
+        this.firebaseAuth = FirebaseAuth.getInstance();
+        this.fireStore = FirebaseFirestore.getInstance();
+        this.storage = FirebaseStorage.getInstance();
     }
 
     public static DataFactory sharedInstance() {
@@ -95,9 +103,6 @@ public class DataFactory {
     public void setContext(Context context) {
 
         this.context = context;
-        this.firebaseAuth = FirebaseAuth.getInstance();
-        this.fireStore = FirebaseFirestore.getInstance();
-        this.storage = FirebaseStorage.getInstance();
     }
 
 
@@ -599,5 +604,149 @@ public class DataFactory {
         pathReference.child(empresa.getLogo()).delete();
     }
 
+    public void getContatos(final IContatosDelegate delegate, final Empresa empresa) {
+
+        FirebaseUser user = firebaseAuth.getCurrentUser();
+        String uid = user.getUid();
+
+        fireStore.collection(USER_COLLECTION)
+                .document(uid)
+                .collection(EMPRESAS_COLLECTION)
+                .document(empresa.getId())
+                .collection(CONTATOS_COLLECTION)
+                .get()
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        if (task.isSuccessful()) {
+                            contatos.clear();
+
+                            for (QueryDocumentSnapshot document : task.getResult()) {
+                                String id = document.getId();
+                                String nome = document.get("nome").toString();
+                                String telefone = document.get("telefone").toString();
+                                String email = document.get("email").toString();
+
+                                Contato contato = new Contato(id, nome, telefone, email);
+                                contatos.add(contato);
+                            }
+
+                            delegate.onContatos(true);
+                        } else {
+                            delegate.onContatos(false);
+                        }
+                    }
+                });
+    }
+
+    public List<Contato> getContatos() {
+        return this.contatos;
+    }
+
+    public Contato getContato(int position) {
+        return contatos.get(position);
+    }
+
+
+    public void addContato(final IEditContatoDelegate delegate, final Empresa empresa, final Contato contato) {
+        FirebaseUser user = firebaseAuth.getCurrentUser();
+        final String uid = user.getUid();
+
+        Map<String, Object> data = new HashMap<>();
+        data.put("nome", contato.getNome());
+        data.put("telefone", contato.getTelefone());
+        data.put("email", contato.getEmail());
+
+        fireStore.collection(USER_COLLECTION)
+                .document(uid)
+                .collection(EMPRESAS_COLLECTION)
+                .document(empresa.getId())
+                .collection(CONTATOS_COLLECTION)
+                .add(data)
+                .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
+                    @Override
+                    public void onSuccess(DocumentReference documentReference) {
+                        String id = documentReference.getId();
+                        Contato temp = contato;
+                        temp.setId(id);
+                        contatos.add(temp);
+                        delegate.onEditContatoDelegate(true);
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        delegate.onEditContatoDelegate(false);
+                    }
+                })
+                .addOnCanceledListener(new OnCanceledListener() {
+                    @Override
+                    public void onCanceled() {
+                        delegate.onEditContatoDelegate(false);
+                    }
+                });
+    }
+
+    public void updateContato(final IEditContatoDelegate delegate, final Empresa empresa, final Contato contato, final int position) {
+        FirebaseUser user = firebaseAuth.getCurrentUser();
+        final String uid = user.getUid();
+
+        Map<String, Object> data = new HashMap<>();
+        data.put("nome", contato.getNome());
+        data.put("telefone", contato.getTelefone());
+        data.put("email", contato.getEmail());
+
+        fireStore.collection(USER_COLLECTION)
+                .document(uid)
+                .collection(EMPRESAS_COLLECTION)
+                .document(empresa.getId())
+                .collection(CONTATOS_COLLECTION)
+                .document(contato.getId())
+                .update(data)
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        contatos.set(position, contato);
+                        delegate.onEditContatoDelegate(true);
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        delegate.onEditContatoDelegate(false);
+                    }
+                });
+    }
+
+    public void removeContato(final Empresa empresa, final int position, final IRemoveContatoDelegate delegate) {
+        final Contato contato = this.contatos.get(position);
+        if (contato != null) {
+            FirebaseUser user = firebaseAuth.getCurrentUser();
+            String uid = user.getUid();
+
+            fireStore.collection(USER_COLLECTION)
+                    .document(uid)
+                    .collection(EMPRESAS_COLLECTION)
+                    .document(empresa.getId())
+                    .collection(CONTATOS_COLLECTION)
+                    .document(contato.getId())
+                    .delete()
+                    .addOnSuccessListener(new OnSuccessListener<Void>() {
+                        @Override
+                        public void onSuccess(Void aVoid) {
+                            contatos.remove(position);
+                            delegate.onRemoveContato(true, position);
+                        }
+                    })
+                    .addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            delegate.onRemoveContato(false, position);
+                        }
+                    });
+        } else {
+            delegate.onRemoveContato(false, position);
+        }
+    }
 
 }
